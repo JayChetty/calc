@@ -33,13 +33,13 @@ window.onload = function(){
     Bodies.rectangle(306, 400, 300, 20, { isStatic: true, angle: Math.PI * 0.5 }),
     Bodies.rectangle(500, 400, 300, 20, { isStatic: true, angle: Math.PI * 0.5 }),
     // wee adjuster
-    Bodies.rectangle(313, 512, 40, 20, { isStatic: true, angle: Math.PI * 0.5 }),
+    // Bodies.rectangle(313, 512, 40, 20, { isStatic: true, angle: Math.PI * 0.5 }),
     //catch helper
     Bodies.rectangle(465, 280, 100, 2, { isStatic: true, angle: Math.PI * 0.5 }),
     // feed
-    Bodies.rectangle(640, 218, 300, 2, { isStatic: true, angle: boxAngle }),
+    Bodies.rectangle(640, 210, 300, 2, { isStatic: true, angle: boxAngle }),
 
-    Bodies.trapezoid(600, 100, 10, 10, -0.1, { friction: ballFriction, restitution: ballRestitution, density: ballDensity, slop:ballSlop })
+    // Bodies.trapezoid(600, 100, 15, 15, -0.5, { friction: ballFriction, restitution: ballRestitution, density: ballDensity, slop:ballSlop })
     // Bodies.rectangle(100, 300, 400, 20, { isStatic: true, angle: Math.PI * 0.5 })
     //guide
     // Bodies.rectangle(275, 499, 300, 1, { isStatic: true, angle: boxAngle }),
@@ -58,6 +58,8 @@ window.onload = function(){
     
     for(var i=0; i<1; i++){
       var circle = Bodies.circle(600 + i*5, 100, 9.5, { friction: ballFriction, restitution: ballRestitution, density: ballDensity, slop:ballSlop });
+      // var circle = Bodies.trapezoid(600, 100, 15, 15, 0.9, { friction: ballFriction, restitution: ballRestitution, density: ballDensity, slop:ballSlop })
+      // var circle = Bodies.trapezoid(600, 100, 15, 15, 0.9, { friction: ballFriction, restitution: ballRestitution, density: ballDensity, slop:ballSlop })
       newCircles.push(circle)
     }
     World.add(engine.world, newCircles)    
@@ -66,9 +68,9 @@ window.onload = function(){
 
   // run the engine
   Engine.run(engine);
-  // for(var i=0; i<60; i++){
-  //   setTimeout(dropBalls, i*500);
-  // }
+  for(var i=0; i<60; i++){
+    setTimeout(dropBalls, i*500);
+  }
 
 
   // setTimeout(dropBalls, 12000);
