@@ -1,0 +1,23 @@
+{
+  "name": "calc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "~4.9.x",
+  },  
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JayChetty/calc.git"
+  },
+  "author": "Jay CHetty",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JayChetty/calc/issues"
+  },
+  "homepage": "https://github.com/JayChetty/calc/CollabServer"
+}
