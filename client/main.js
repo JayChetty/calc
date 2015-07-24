@@ -28,8 +28,6 @@ window.onload = function(){
 
   console.log('boxHeightAdjust', boxHeightAdjust)
 
-  
-
   var ballFriction = 0.00001;
   var ballRestitution = 0.0000;
   var ballDensity = 0.00000000001;
@@ -41,8 +39,6 @@ window.onload = function(){
   var ballStartX = ballBoxStartX+ 10;
   var bottomWidth = 100
   
-
-
 
   // add ground
   World.add(engine.world, [
@@ -86,7 +82,8 @@ window.onload = function(){
   ]);
 
   var boxStartX = feedPointX
-  var boxStartY = feedPointY - feedHeight*2  - holeSize/2  - pieceDiameter*1
+  var gap = pieceDiameter*1
+  var boxStartY = feedPointY - feedHeight*2  - holeSize/2  - gap
   var boxHeight = 10*pieceDiameter 
   var ballBoxBodies = [];
 
@@ -94,65 +91,39 @@ window.onload = function(){
   for(var i=0; i<11; i++){// we need 11 lines to create 10 boxes
     ballBoxBodies.push( Bodies.rectangle(boxStartX + (i*pieceDiameter), boxStartY - boxHeight/2, boxHeight, 1, { isStatic: true, angle: Math.PI * 0.5 }) )   
   }
+
   World.add(engine.world, ballBoxBodies)
 
-  var bottomWidth = 10*pieceDiameter
-  //add bottom
-  var bottom = Bodies.rectangle(boxStartX + bottomWidth/2, boxStartY, bottomWidth, 1, { isStatic: true, angle: 0 });
-  World.add(engine.world, [  
-    //Ball Boxes
-
-    //bottom
-    bottom,
-    
-    // Bodies.circle(ballStartX, 60, 9.5, { friction: ballFriction, restitution: ballRestitution, density: ballDensity, slop:ballSlop }),
-    // Bodies.circle(ballStartX, 40, 9.5, { friction: ballFriction, restitution: ballRestitution, density: ballDensity, slop:ballSlop }),
-    // Bodies.circle(ballStartX, 20, 9.5, { friction: ballFriction, restitution: ballRestitution, density: ballDensity, slop:ballSlop }),
-    // Bodies.circle(ballStartX, 0, 9.5, { friction: ballFriction, restitution: ballRestitution, density: ballDensity, slop:ballSlop }),
-
-    // Bodies.circle(ballStartX+20, 60, 9.5, { friction: ballFriction, restitution: ballRestitution, density: ballDensity, slop:ballSlop }),
-    // Bodies.circle(ballStartX+20, 40, 9.5, { friction: ballFriction, restitution: ballRestitution, density: ballDensity, slop:ballSlop }),
-    // Bodies.circle(ballStartX+20, 20, 9.5, { friction: ballFriction, restitution: ballRestitution, density: ballDensity, slop:ballSlop }),
-    // Bodies.circle(ballStartX+20, 0, 9.5, { friction: ballFriction, restitution: ballRestitution, density: ballDensity, slop:ballSlop }),
-
+  //add protector
+  World.add(engine.world, [
+    Bodies.rectangle(boxStartX, boxStartY + gap/2, gap, 1, { isStatic: true, angle: Math.PI * 0.5 }),
   ]);
 
-  //add circles
+  //add bottom  
+  var bottomWidth = 10*pieceDiameter 
+  var bottom = Bodies.rectangle(boxStartX + bottomWidth/2, boxStartY, bottomWidth, 1, { isStatic: true, angle: 0 });
+  World.add(engine.world, [bottom])
 
 
-  // var dropBalls = function(){
-  //   var newCircles = []
-    
-  //   for(var i=0; i<1; i++){
-  //     var circle = Bodies.circle(600 + i*5, 100, 9.5, { friction: ballFriction, restitution: ballRestitution, density: ballDensity, slop:ballSlop });
-  //     // var circle = Bodies.trapezoid(600, 100, 15, 15, 0.9, { friction: ballFriction, restitution: ballRestitution, density: ballDensity, slop:ballSlop })
-  //     // var circle = Bodies.trapezoid(600, 100, 15, 15, 0.9, { friction: ballFriction, restitution: ballRestitution, density: ballDensity, slop:ballSlop })
-  //     newCircles.push(circle)
-  //   }
-  //   World.add(engine.world, newCircles)
-  // }
+  // add pieces
+  var ballStartX = boxStartX + pieceDiameter/2
+  var ballStartY = boxStartY - pieceDiameter/2
+  var pieces = []
+  for(var i=0; i<10; i++){
+    for(var j=0; j<7; j++){
+      pieces.push( Bodies.circle(ballStartX + i*pieceDiameter, pieceDiameter - j*pieceDiameter, pieceDiameter/2, { friction: ballFriction, restitution: ballRestitution, density: ballDensity, slop:ballSlop }) )
+    }
+  }
 
+  World.add(engine.world, pieces)
 
-
-  // run the engine
   Engine.run(engine);
-
-  //test drop random balls
-  // for(var i=0; i<21; i++){
-  //   setTimeout(dropBalls, i*500);
-  // }
-
-  // setTimeout(function(){
-  //   World.add(engine.world,[Bodies.rectangle(480, 452, 18, 1, { isStatic: true, angle: boxAngle, restitution: ballRestitution })]);
-  // }, 8000)
 
 
   var button = document.getElementById('drop-button')
   console.log('butto dn', button)
   button.addEventListener('click', function(ev){
-    console.log('the button was clicked', bottom);
     Matter.Body.translate(bottom, {x:20, y:0})
-    // World.add(engine.world, [bottom])
   });
 
 }
