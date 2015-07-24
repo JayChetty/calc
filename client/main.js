@@ -9,7 +9,7 @@ window.onload = function(){
 
   var engine = Engine.create(document.getElementById('main-view'));
 
-  var height = 800;
+  var height = 600;
   var width = 800;
   var bottomY = height - 20
   var centerX = width/2;
@@ -19,11 +19,11 @@ window.onload = function(){
   console.log('canvas', canvas)
 
   var pieceDiameter = 20
-
+  var adjust = pieceDiameter * 0.5
   var boxAngle = -Math.PI * 0.075
   var boxHeight = 10*pieceDiameter
-  var boxHypotenuse = 10*pieceDiameter
-  var boxWidth = boxHypotenuse * Math.cos(boxAngle)
+  var boxHypotenuse = 10*pieceDiameter - adjust
+  var boxWidth = boxHypotenuse * Math.cos(boxAngle) 
   var boxHeightAdjust = -1 * (boxHypotenuse * Math.sin(boxAngle))
 
   console.log('boxHeightAdjust', boxHeightAdjust)
@@ -31,7 +31,7 @@ window.onload = function(){
   var ballFriction = 0.00001;
   var ballRestitution = 0.0000;
   var ballDensity = 0.00000000001;
-  var ballSlop = 0;
+  var ballSlop = 0.0000001;
 
   var timesTable = 7;
 
@@ -110,8 +110,8 @@ window.onload = function(){
   var ballStartY = boxStartY - pieceDiameter/2
   var pieces = []
   for(var i=0; i<10; i++){
-    for(var j=0; j<7; j++){
-      pieces.push( Bodies.circle(ballStartX + i*pieceDiameter, pieceDiameter - j*pieceDiameter, pieceDiameter/2, { friction: ballFriction, restitution: ballRestitution, density: ballDensity, slop:ballSlop }) )
+    for(var j=0; j<10; j++){
+      pieces.push( Bodies.circle(ballStartX + i*pieceDiameter, ballStartY - j*pieceDiameter, pieceDiameter/2, { friction: ballFriction, restitution: ballRestitution, density: ballDensity, slop:ballSlop }) )
     }
   }
 
