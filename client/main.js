@@ -35,7 +35,7 @@ window.onload = function(){
   var boxAngle = -Math.PI * 0.075
   var boxHeight = 10*pieceDiameter
   var boxHypotenuse = 10*pieceDiameter - adjust
-  var boxWidth = boxHypotenuse * Math.cos(boxAngle) 
+  var boxWidth = boxHypotenuse * Math.cos(boxAngle)
   var boxHeightAdjust = -1 * (boxHypotenuse * Math.sin(boxAngle))
 
   console.log('boxHeightAdjust', boxHeightAdjust)
@@ -44,12 +44,15 @@ window.onload = function(){
   var ballRestitution = 0.0000;
   var ballDensity = 0.000000000001;
   var ballSlop = 0.0000001;
+  var ballFrictionAir = 0.01;
 
-  var timesTable = 7;
+  var timesTable = 6;
 
   var ballBoxStartX = 500;
   var ballStartX = ballBoxStartX+ 10;
   var bottomWidth = 100
+
+  var firstLineTopY = bottomY - boxHeightAdjust - pieceDiameter;
   
 
   // add ground
@@ -60,7 +63,7 @@ window.onload = function(){
   //add catch box
   World.add(engine.world, [
     //bottom
-    Bodies.rectangle(centerX, bottomY - boxHeightAdjust/2, boxWidth, 1, { isStatic: true, angle: boxAngle }),
+    Bodies.rectangle(centerX, bottomY - boxHeightAdjust/2, boxWidth+pieceDiameter/2, 1, { isStatic: true, angle: boxAngle }),
     //walls
     Bodies.rectangle(centerX - boxWidth/2, bottomY - boxHeight/2, boxHeight, 1, { isStatic: true, angle: Math.PI * 0.5 }),
     Bodies.rectangle(centerX + boxWidth/2, bottomY - boxHeightAdjust - (boxHeight/2), boxHeight, 1, { isStatic: true, angle: Math.PI * 0.5 }),
@@ -137,7 +140,7 @@ window.onload = function(){
   for(var i=0; i<10; i++){
     for(var j=0; j<timesTable; j++){
       pieces.push( Bodies.circle(ballStartX + i*pieceDiameter, ballStartY - j*pieceDiameter, pieceDiameter/2, { friction: ballFriction, restitution: ballRestitution, 
-        density: ballDensity, slop:ballSlop, render: { fillStyle: colours[i] } }) )
+        frictionAir: ballFrictionAir, density: ballDensity, slop:ballSlop, render: { fillStyle: colours[i] } }) )
     }
   }
 
@@ -145,21 +148,53 @@ window.onload = function(){
 
   Engine.run(engine);
 
-
+  var hasSupport1 = false
+  var hasSupport2 = false
+  var hasSupport3 = false
+  var hasSupport4 = false
   var button = document.getElementById('drop-button')
+
+  var channelHeight = pieceDiameter + 2
+  var guide1Y = bottomY - boxHeightAdjust/2 - channelHeight
+  var guide2Y = guide1Y- channelHeight
+  var guide3Y = guide2Y - channelHeight
+  var guide4Y = guide3Y - channelHeight
   console.log('butto dn', button)
   button.addEventListener('click', function(ev){
     Matter.Body.translate(bottom, {x:20, y:0})
+    var count = 0;
     pieces.forEach(function(piece){
       // console.log('piece', piece)
-      
+      console.log('piece', piece)
       // piece.setStatic(true)
       if(piece.position.y > 400){
         console.log('setting static')
+        count++;
         // Matter.Body.setStatic(piece, true);
       }
+      // if(count >=10){
+        // console.log('more than ten pieces adding helper')
+       
+
+      // }
       // Matter.Sleeping(piece, true)
     })
+    if(!hasSupport1 && count >=10){
+      World.add(engine.world, [Bodies.rectangle(centerX, guide1Y, boxWidth, 1, { isStatic: true, angle: boxAngle })])
+      hasSupport1 = true
+    }
+    if(!hasSupport2 && count >=20){
+      World.add(engine.world, [Bodies.rectangle(centerX, guide2Y, boxWidth, 1, { isStatic: true, angle: boxAngle })])
+      hasSupport2 = true
+    }
+    if(!hasSupport3 && count >=30){
+      World.add(engine.world, [Bodies.rectangle(centerX, guide3Y, boxWidth, 1, { isStatic: true, angle: boxAngle })])
+      hasSupport3 = true
+    }
+    if(!hasSupport4 && count >=40){
+      World.add(engine.world, [Bodies.rectangle(centerX, guide4Y, boxWidth, 1, { isStatic: true, angle: boxAngle })])
+      hasSupport4 = true
+    }
   });
 
 }
