@@ -2,6 +2,7 @@ var Matter = require('matter-js')
 var Engine = Matter.Engine,
     World = Matter.World,
     Bodies = Matter.Bodies;
+    Events = Matter.Events;
 
 
 window.onload = function(){
@@ -25,7 +26,7 @@ window.onload = function(){
 
   var bottomY = height - 20
   var centerX = width/2;
-  // var canvas = document.getElementsByTagName("canvas")[0];
+  var canvas = document.getElementsByTagName("canvas")[0];
   // canvas.height = height;
   // canvas.width = width;
   // console.log('canvas', canvas)
@@ -53,6 +54,9 @@ window.onload = function(){
   var bottomWidth = 100
 
   var firstLineTopY = bottomY - boxHeightAdjust - pieceDiameter;
+
+  var boxLeftX = centerX - boxWidth/2
+  var boxRightX = centerX + boxWidth/2
   
 
   // add ground
@@ -65,8 +69,8 @@ window.onload = function(){
     //bottom
     Bodies.rectangle(centerX, bottomY - boxHeightAdjust/2, boxWidth+pieceDiameter/2, 1, { isStatic: true, angle: boxAngle }),
     //walls
-    Bodies.rectangle(centerX - boxWidth/2, bottomY - boxHeight/2, boxHeight, 1, { isStatic: true, angle: Math.PI * 0.5 }),
-    Bodies.rectangle(centerX + boxWidth/2, bottomY - boxHeightAdjust - (boxHeight/2), boxHeight, 1, { isStatic: true, angle: Math.PI * 0.5 }),
+    Bodies.rectangle(boxLeftX, bottomY - boxHeight/2, boxHeight, 1, { isStatic: true, angle: Math.PI * 0.5 }),
+    Bodies.rectangle(boxRightX, bottomY - boxHeightAdjust - (boxHeight/2), boxHeight, 1, { isStatic: true, angle: Math.PI * 0.5 }),
   ]);
 
 
@@ -195,6 +199,21 @@ window.onload = function(){
       World.add(engine.world, [Bodies.rectangle(centerX, guide4Y, boxWidth, 1, { isStatic: true, angle: boxAngle })])
       hasSupport4 = true
     }
+  });
+  var ctx = canvas.getContext('2d');
+  var path=  new Path2D();
+  Events.on(engine, 'afterTick',  function(ev){
+    // console.log('after render', ev)
+    
+    // for(var i = 1;i++;i<3){
+    path.moveTo(boxLeftX, bottomY - (channelHeight*1));
+    path.lineTo(boxRightX, bottomY - boxHeightAdjust - (channelHeight*1));
+    // // }
+    path.moveTo(boxLeftX, bottomY - (channelHeight*2));
+    path.lineTo(boxRightX, bottomY - boxHeightAdjust - (channelHeight*2));
+    // }
+    ctx.stroke(path);
+    
   });
 
 }
