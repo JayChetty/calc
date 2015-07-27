@@ -14,7 +14,9 @@ window.onload = function(){
   var width = 800;
 
   var engine = Engine.create(document.getElementById('main-view'),{
+
     render: {
+      // controller: Matter.RenderPixi,
       options: {
         //should be able to set background color here
         height:600,
@@ -200,20 +202,19 @@ window.onload = function(){
       hasSupport4 = true
     }
   });
-  var ctx = canvas.getContext('2d');
-  var path=  new Path2D();
+
+  console.log('engine', engine)
+
+  var ctx = engine.render.context;
+
+
   Events.on(engine, 'afterTick',  function(ev){
-    // console.log('after render', ev)
-    
-    // for(var i = 1;i++;i<3){
-    path.moveTo(boxLeftX, bottomY - (channelHeight*1));
-    path.lineTo(boxRightX, bottomY - boxHeightAdjust - (channelHeight*1));
-    // // }
-    path.moveTo(boxLeftX, bottomY - (channelHeight*2));
-    path.lineTo(boxRightX, bottomY - boxHeightAdjust - (channelHeight*2));
-    // }
-    ctx.stroke(path);
-    
+    ctx.beginPath()
+    for(var i=1; i<10; i++){
+      ctx.moveTo(boxLeftX, bottomY - (channelHeight*i));
+      ctx.lineTo(boxRightX, bottomY - boxHeightAdjust - (channelHeight*i));
+    }
+    ctx.stroke();   
   });
 
 }
