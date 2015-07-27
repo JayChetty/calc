@@ -160,11 +160,14 @@ window.onload = function(){
   var hasSupport4 = false
   var button = document.getElementById('drop-button')
 
+
+  var baseHeight = bottomY - (boxHeightAdjust/2)
   var channelHeight = pieceDiameter + 2
-  var guide1Y = bottomY - boxHeightAdjust/2 - channelHeight
-  var guide2Y = guide1Y- channelHeight
-  var guide3Y = guide2Y - channelHeight
-  var guide4Y = guide3Y - channelHeight
+  var hasSupport = []
+  var heightForGuide = function(num){
+    return(baseHeight - (num*channelHeight))
+  }
+
   console.log('butto dn', button)
   button.addEventListener('click', function(ev){
     Matter.Body.translate(bottom, {x:20, y:0})
@@ -173,7 +176,7 @@ window.onload = function(){
       // console.log('piece', piece)
       console.log('piece', piece)
       // piece.setStatic(true)
-      if(piece.position.y > 400){
+      if(piece.position.y > feedPointY){
         console.log('setting static')
         count++;
         // Matter.Body.setStatic(piece, true);
@@ -185,21 +188,13 @@ window.onload = function(){
       // }
       // Matter.Sleeping(piece, true)
     })
-    if(!hasSupport1 && count >=10){
-      World.add(engine.world, [Bodies.rectangle(centerX, guide1Y, boxWidth, 1, { isStatic: true, angle: boxAngle })])
-      hasSupport1 = true
-    }
-    if(!hasSupport2 && count >=20){
-      World.add(engine.world, [Bodies.rectangle(centerX, guide2Y, boxWidth, 1, { isStatic: true, angle: boxAngle })])
-      hasSupport2 = true
-    }
-    if(!hasSupport3 && count >=30){
-      World.add(engine.world, [Bodies.rectangle(centerX, guide3Y, boxWidth, 1, { isStatic: true, angle: boxAngle })])
-      hasSupport3 = true
-    }
-    if(!hasSupport4 && count >=40){
-      World.add(engine.world, [Bodies.rectangle(centerX, guide4Y, boxWidth, 1, { isStatic: true, angle: boxAngle })])
-      hasSupport4 = true
+
+    for(var i=0 ;i<10;i++){
+      if(!hasSupport[i] && count >= (i+1)*10){
+        console.log('adding a shoot')
+        World.add(engine.world, [Bodies.rectangle(centerX, heightForGuide(i+1), boxWidth, 1, { isStatic: true, angle: boxAngle })])
+        hasSupport[i] = true;
+      }
     }
   });
 
@@ -207,12 +202,18 @@ window.onload = function(){
 
   var ctx = engine.render.context;
 
+  var heightOffset = boxHeightAdjust/10
 
+  var xMove = boxWidth/10
   Events.on(engine, 'afterTick',  function(ev){
     ctx.beginPath()
     for(var i=1; i<10; i++){
       ctx.moveTo(boxLeftX, bottomY - (channelHeight*i));
       ctx.lineTo(boxRightX, bottomY - boxHeightAdjust - (channelHeight*i));
+    };
+    for(var i=1; i<10; i++){
+      ctx.moveTo(boxLeftX + xMove*i, bottomY - (heightOffset*i));
+      ctx.lineTo(boxLeftX + xMove*i, bottomY - (heightOffset*i) - boxHeight);
     }
     ctx.stroke();   
   });
