@@ -10,7 +10,7 @@ window.onload = function(){
 
 
 
-  var height = 600;
+  var height = 650;
   var width = 800;
 
   var engine = Engine.create(document.getElementById('main-view'),{
@@ -19,8 +19,8 @@ window.onload = function(){
       // controller: Matter.RenderPixi,
       options: {
         //should be able to set background color here
-        height:600,
-        width:800,
+        height:height,
+        width:width,
         wireframes: false
       }
     }
@@ -35,21 +35,21 @@ window.onload = function(){
 
   var pieceDiameter = 19
   var adjust = pieceDiameter * 0.5
-  var boxAngle = -Math.PI * 0.075
-  var boxHeight = 10*pieceDiameter
+  var boxAngle = -Math.PI * 0.04
+  var boxHeight = 11*pieceDiameter
   var boxHypotenuse = 10*pieceDiameter - adjust
   var boxWidth = boxHypotenuse * Math.cos(boxAngle)
   var boxHeightAdjust = -1 * (boxHypotenuse * Math.sin(boxAngle))
 
   console.log('boxHeightAdjust', boxHeightAdjust)
 
-  var ballFriction = 0.00000001;
+  var ballFriction = 0.00001;
   var ballRestitution = 0.0000;
-  var ballDensity = 0.000000000001;
-  var ballSlop = 0.0000001;
-  var ballFrictionAir = 0.01;
+  var ballDensity = 0.00000001;
+  var ballSlop = 0.0000000;
+  var ballFrictionAir = 0.02;
 
-  var timesTable = 6;
+  var timesTable = 10;
 
   var ballBoxStartX = 500;
   var ballStartX = ballBoxStartX+ 10;
@@ -78,7 +78,7 @@ window.onload = function(){
 
   var feedAngle = -Math.PI * 0.04
   var feedPointX = centerX + boxWidth/2;
-  var feedPointY = bottomY - boxHeight - boxHeightAdjust
+  var feedPointY = bottomY - boxHeight - boxHeightAdjust - 2*pieceDiameter
 
   var feedTotalWidth = width - feedPointX
   var feedLength = feedTotalWidth / Math.cos(feedAngle)
@@ -99,7 +99,8 @@ window.onload = function(){
     //block
     Bodies.rectangle(feedPointX + feedTotalWidth, feedPointY - feedHeight - blockSize/2 , blockSize, 5, { isStatic: true, angle: Math.PI * 0.5 }),
     //guide
-    Bodies.rectangle(feedPointX - pieceDiameter, feedPointY, pieceDiameter * 5, 1, { isStatic: true, angle: Math.PI * 0.5 }),
+    Bodies.rectangle(feedPointX, feedPointY + pieceDiameter, pieceDiameter * 2, 1, { isStatic: true, angle: -Math.PI * 0.5 }),
+    Bodies.rectangle(feedPointX - pieceDiameter, feedPointY - pieceDiameter, pieceDiameter * 5, 1, { isStatic: true, angle: Math.PI * 0.5 }),
   ]);
 
   var boxStartX = feedPointX
@@ -207,13 +208,13 @@ window.onload = function(){
   var xMove = boxWidth/10
   Events.on(engine, 'afterTick',  function(ev){
     ctx.beginPath()
-    for(var i=1; i<10; i++){
+    for(var i=1; i<11; i++){
       ctx.moveTo(boxLeftX, bottomY - (channelHeight*i));
       ctx.lineTo(boxRightX, bottomY - boxHeightAdjust - (channelHeight*i));
     };
     for(var i=1; i<10; i++){
       ctx.moveTo(boxLeftX + xMove*i, bottomY - (heightOffset*i));
-      ctx.lineTo(boxLeftX + xMove*i, bottomY - (heightOffset*i) - boxHeight);
+      ctx.lineTo(boxLeftX + xMove*i, bottomY - (heightOffset*i) - boxHeight -pieceDiameter);
     }
     ctx.stroke();   
   });
