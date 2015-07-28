@@ -8,8 +8,6 @@ var Engine = Matter.Engine,
 window.onload = function(){
 	console.log('app started', Matter);
 
-
-
   var height = 650;
   var width = 800;
 
@@ -35,7 +33,7 @@ window.onload = function(){
 
   var pieceDiameter = 19
   var adjust = pieceDiameter * 0.5
-  var boxAngle = -Math.PI * 0.04
+  var boxAngle = -Math.PI * 0.03
   var boxHeight = 11*pieceDiameter
   var boxHypotenuse = 10*pieceDiameter - adjust
   var boxWidth = boxHypotenuse * Math.cos(boxAngle)
@@ -44,7 +42,7 @@ window.onload = function(){
   console.log('boxHeightAdjust', boxHeightAdjust)
 
   var ballFriction = 0.00001;
-  var ballRestitution = 0.0000;
+  var ballRestitution = 0.0000001;
   var ballDensity = 0.00000001;
   var ballSlop = 0.0000000;
   var ballFrictionAir = 0.02;
@@ -66,6 +64,8 @@ window.onload = function(){
     Bodies.rectangle(centerX, bottomY, width, 1, { isStatic: true, angle: 0 }),
   ]);
 
+  console.log('engine.world',engine.world)
+
   //add catch box
   World.add(engine.world, [
     //bottom
@@ -78,7 +78,7 @@ window.onload = function(){
 
   var feedAngle = -Math.PI * 0.04
   var feedPointX = centerX + boxWidth/2;
-  var feedPointY = bottomY - boxHeight - boxHeightAdjust - 2*pieceDiameter
+  var feedPointY = bottomY - boxHeight - boxHeightAdjust - pieceDiameter
 
   var feedTotalWidth = width - feedPointX
   var feedLength = feedTotalWidth / Math.cos(feedAngle)
@@ -91,6 +91,8 @@ window.onload = function(){
   console.log('feedLength', feedLength)
   console.log('feedHeight', feedHeight)
   console.log('feedTotalWidth', feedTotalWidth)
+
+  var feedGuide = Bodies.rectangle(feedPointX - pieceDiameter, feedPointY, pieceDiameter * 5, 1, { isStatic: true, angle: Math.PI * 0.5 })
   // add feed
   World.add(engine.world, [
     //ramps
@@ -99,8 +101,8 @@ window.onload = function(){
     //block
     Bodies.rectangle(feedPointX + feedTotalWidth, feedPointY - feedHeight - blockSize/2 , blockSize, 5, { isStatic: true, angle: Math.PI * 0.5 }),
     //guide
-    Bodies.rectangle(feedPointX, feedPointY + pieceDiameter, pieceDiameter * 2, 1, { isStatic: true, angle: -Math.PI * 0.5 }),
-    Bodies.rectangle(feedPointX - pieceDiameter, feedPointY - pieceDiameter, pieceDiameter * 5, 1, { isStatic: true, angle: Math.PI * 0.5 }),
+    feedGuide,
+    Bodies.rectangle(feedPointX, feedPointY + pieceDiameter, pieceDiameter * 2, 1, { isStatic: true, angle: -Math.PI * 0.5 })
   ]);
 
   var boxStartX = feedPointX
@@ -190,11 +192,14 @@ window.onload = function(){
       // Matter.Sleeping(piece, true)
     })
 
-    for(var i=0 ;i<10;i++){
+    for(var i=0 ;i<10;i++){    
       if(!hasSupport[i] && count >= (i+1)*10){
         console.log('adding a shoot')
         World.add(engine.world, [Bodies.rectangle(centerX, heightForGuide(i+1), boxWidth, 1, { isStatic: true, angle: boxAngle })])
         hasSupport[i] = true;
+        if(i==7){
+          Matter.Body.translate(feedGuide, {x:0, y: -1.5 * pieceDiameter})
+        }
       }
     }
   });
