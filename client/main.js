@@ -210,7 +210,7 @@ window.onload = function(){
 
   var heightOffset = boxHeightAdjust/10
 
-  var xMove = boxWidth/10
+  var xGridSize = boxWidth/10
   Events.on(engine, 'afterTick',  function(ev){
     ctx.beginPath()
     for(var i=1; i<11; i++){
@@ -218,11 +218,38 @@ window.onload = function(){
       ctx.lineTo(boxRightX, bottomY - boxHeightAdjust - (channelHeight*i));
     };
     for(var i=1; i<10; i++){
-      ctx.moveTo(boxLeftX + xMove*i, bottomY - (heightOffset*i));
-      ctx.lineTo(boxLeftX + xMove*i, bottomY - (heightOffset*i) - boxHeight -pieceDiameter);
+      ctx.moveTo(boxLeftX + xGridSize*i, bottomY - (heightOffset*i));
+      ctx.lineTo(boxLeftX + xGridSize*i, bottomY - (heightOffset*i) - boxHeight -pieceDiameter);
     }
     ctx.stroke();   
   });
+
+  var findPredictionSquare = function(position){
+    var xAdjust = position.x - boxLeftX
+    console.log('xadjust', xAdjust);
+    var xSquare = Math.ceil(xAdjust/xGridSize);
+    console.log('xsquare', xSquare);
+    if(!xSquare || xSquare<1 || xSquare>10){return null}
+    var yAdjust = bottomY - position.y - (heightOffset*xSquare)
+    console.log('yAdjust', yAdjust);
+    var ySquare = Math.ceil(yAdjust/channelHeight);
+    console.log('ySquare', ySquare)
+    if(!ySquare || ySquare<1 || ySquare>10){return null}
+    return{xSquare, ySquare}
+  }
+
+  Events.on(engine, 'mousedown', function(ev){
+    console.log('mousedown',ev);
+    var position = ev.mouse.mousedownPosition
+    console.log('position', position)
+    if(position.x <= boxRightX && position.x >= boxLeftX && position.y > feedPointY ){
+      console.log('trying to find target')
+      var target = findPredictionSquare(position)
+      if(target){
+        console.log('have target', target)
+      }
+    }
+  })
 
 }
 
