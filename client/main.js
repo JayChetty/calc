@@ -41,13 +41,9 @@ window.onload = function(){
 
   console.log('boxHeightAdjust', boxHeightAdjust)
 
-  var ballFriction = 0.00001;
-  var ballRestitution = 0.0000001;
-  var ballDensity = 0.00000001;
-  var ballSlop = 0.0000000;
-  var ballFrictionAir = 0.02;
+  var numBoxes = 10
 
-  var timesTable = 10;
+  var timesTable = 3;
 
   var ballBoxStartX = 500;
   var ballStartX = ballBoxStartX+ 10;
@@ -101,67 +97,73 @@ window.onload = function(){
     ]);
   }
 
-  var boxStartX = feedPointX
-  var gap = pieceDiameter*1
-  var boxStartY = feedPointY - feedHeight*2  - holeSize*0.8  - gap
-  var boxHeight = 10*pieceDiameter 
-  var ballBoxBodies = [];
+  var gap = pieceDiameter*1 
+  var boxStartY = feedPointY - feedHeight*2  - holeSize*0.8  - gap  
+  var bottomWidth = numBoxes*pieceDiameter 
+  var bottom;//global so other drop can access
 
 
-  var addPieceBox = function(){
-  //add box columns
-    for(var i=0; i<11; i++){// we need 11 lines to create 10 boxes
-      ballBoxBodies.push( Bodies.rectangle(boxStartX + (i*pieceDiameter), boxStartY - boxHeight/2, boxHeight, 1, { isStatic: true, angle: Math.PI * 0.5 }) )   
+  var addPieceBox = function(startX, startY, numBoxes, piecesPerBox, pieceDiameter, world){ 
+    var boxHeight = piecesPerBox*pieceDiameter
+    var bottomWidth = numBoxes*pieceDiameter 
+    var ballBoxBodies = [];
+    bottom = Bodies.rectangle(startX+ bottomWidth/2, boxStartY, bottomWidth, 1, { isStatic: true, angle: 0 });
+    //add box columns
+    for(var i=0; i<numBoxes+1; i++){// we need 11 lines to create 10 boxes
+      ballBoxBodies.push( Bodies.rectangle(startX + (i*pieceDiameter), boxStartY - boxHeight/2, boxHeight, 1, { isStatic: true, angle: Math.PI * 0.5 }) )   
     }
-
     World.add(engine.world, ballBoxBodies)
-
     //add protector
     World.add(engine.world, [
-      Bodies.rectangle(boxStartX, boxStartY + gap/2, gap, 1, { isStatic: true, angle: Math.PI * 0.5 }),
+      Bodies.rectangle(startX, startY + gap/2, gap, 1, { isStatic: true, angle: Math.PI * 0.5 }),
     ]);
-
-    //add bottom  
-    var bottomWidth = 10*pieceDiameter 
-    var bottom = Bodies.rectangle(boxStartX + bottomWidth/2, boxStartY, bottomWidth, 1, { isStatic: true, angle: 0 });
+    //add bottom       
     World.add(engine.world, [bottom])
   }
+  var pieces;
 
+  var addPieces = function(startX, startY, numBoxes, piecesPerBox, pieceDiameter, world){
+    var colours = {
+      0:"#991111",
+      1:"#945671",
+      2:"#001111",
+      3:"#991199",
+      4:"#991111",
+      5:"#661111",
+      6:"#99ee11",
+      7:"#9911aa",
+      8:"#995511",
+      9:"#221111",
+    } 
+    var ballFriction = 0.00001;
+    var ballRestitution = 0.0000001;
+    var ballDensity = 0.00000001;
+    var ballSlop = 0.0000000;
+    var ballFrictionAir = 0.005;
 
-  // add pieces
-  var ballStartX = boxStartX + pieceDiameter/2
-  var ballStartY = boxStartY - pieceDiameter/2
-  var pieces = []
-
-  var colours = {
-    0:"#991111",
-    1:"#945671",
-    2:"#001111",
-    3:"#991199",
-    4:"#991111",
-    5:"#661111",
-    6:"#99ee11",
-    7:"#9911aa",
-    8:"#995511",
-    9:"#221111",
-  }
-
-  var addPieces = function(){
-    for(var i=0; i<10; i++){
+    pieces = []
+    for(var i=0; i<numBoxes; i++){
       for(var j=0; j<timesTable; j++){
         pieces.push( Bodies.circle(ballStartX + i*pieceDiameter, ballStartY - j*pieceDiameter, pieceDiameter/2, { friction: ballFriction, restitution: ballRestitution, 
           frictionAir: ballFrictionAir, density: ballDensity, slop:ballSlop, render: { fillStyle: colours[i] } }) )
       }
     }
 
-    World.add(engine.world, pieces)
+    World.add(world, pieces)
   }
 
-  addGround();
-  addCatchBox();
-  addFeed();
-  addPieceBox();
-  addPieces();
+  var ballStartX = feedPointX + pieceDiameter/2
+  var ballStartY = boxStartY - pieceDiameter/2
+
+  var drawAll = function(){
+    addGround();
+    addCatchBox();
+    addFeed();
+    addPieceBox(feedPointX, boxStartY, numBoxes, timesTable, pieceDiameter, engine.world);
+    addPieces(ballStartX, ballStartY, numBoxes, timesTable, pieceDiameter, engine.world);
+  }
+
+  drawAll()
 
   Engine.run(engine);
 
@@ -252,6 +254,26 @@ window.onload = function(){
         console.log('have target', target)
       }
     }
+  })
+
+  var inputNumBoxes = document.getElementById('num-boxes')
+  inputNumBoxes.addEventListener('input', function(ev){
+    console.log('on input changed', ev);
+    var num = ev.target.valueAsNumber
+    console.log('num boxes', num)
+    numBoxes = num;
+    Matter.World.clear ( engine.world )
+    drawAll()
+  })
+
+  var inputPiecesPerBox = document.getElementById('pieces-per-box')
+  inputPiecesPerBox.addEventListener('input', function(ev){
+    console.log('on input changed', ev);
+    var num = ev.target.valueAsNumber
+    console.log('num', num)
+    timesTable = num;
+    Matter.World.clear ( engine.world )
+    drawAll()
   })
 
 }
