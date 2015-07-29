@@ -208,11 +208,16 @@ window.onload = function(){
 
   var ctx = engine.render.context;
 
+
   var heightOffset = boxHeightAdjust/10
 
   var xGridSize = boxWidth/10
-  Events.on(engine, 'afterTick',  function(ev){
+  Events.on(engine, 'afterRender',  function(ev){
+    ctx.save();
+    ctx.strokeStyle =" blue";
+    ctx.setLineDash([1, 2]);
     ctx.beginPath()
+
     for(var i=1; i<11; i++){
       ctx.moveTo(boxLeftX, bottomY - (channelHeight*i));
       ctx.lineTo(boxRightX, bottomY - boxHeightAdjust - (channelHeight*i));
@@ -221,7 +226,9 @@ window.onload = function(){
       ctx.moveTo(boxLeftX + xGridSize*i, bottomY - (heightOffset*i));
       ctx.lineTo(boxLeftX + xGridSize*i, bottomY - (heightOffset*i) - boxHeight -pieceDiameter);
     }
-    ctx.stroke();   
+
+    ctx.stroke();
+    ctx.restore(); 
   });
 
   var findPredictionSquare = function(position){
