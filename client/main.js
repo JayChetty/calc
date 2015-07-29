@@ -8,8 +8,9 @@ var Engine = Matter.Engine,
 window.onload = function(){
 	console.log('app started', Matter);
 
-  var height = 650;
+  var height = 600;
   var width = 800;
+  var prediction = null;
 
   var engine = Engine.create(document.getElementById('main-view'),{
 
@@ -41,9 +42,9 @@ window.onload = function(){
 
   console.log('boxHeightAdjust', boxHeightAdjust)
 
-  var numBoxes = 10
+  var numBoxes = 3
 
-  var timesTable = 3;
+  var piecesPerBox = 8;
 
   var ballBoxStartX = 500;
   var ballStartX = ballBoxStartX+ 10;
@@ -137,13 +138,13 @@ window.onload = function(){
     } 
     var ballFriction = 0.00001;
     var ballRestitution = 0.0000001;
-    var ballDensity = 0.00000001;
-    var ballSlop = 0.0000000;
-    var ballFrictionAir = 0.005;
+    var ballDensity = 0.0000001;
+    var ballSlop = 0.000000001;
+    var ballFrictionAir = 0.01;
 
     pieces = []
     for(var i=0; i<numBoxes; i++){
-      for(var j=0; j<timesTable; j++){
+      for(var j=0; j<piecesPerBox; j++){
         pieces.push( Bodies.circle(ballStartX + i*pieceDiameter, ballStartY - j*pieceDiameter, pieceDiameter/2, { friction: ballFriction, restitution: ballRestitution, 
           frictionAir: ballFrictionAir, density: ballDensity, slop:ballSlop, render: { fillStyle: colours[i] } }) )
       }
@@ -155,20 +156,13 @@ window.onload = function(){
   var ballStartX = feedPointX + pieceDiameter/2
   var ballStartY = boxStartY - pieceDiameter/2
 
-  var drawAll = function(){
-    addGround();
-    addCatchBox();
-    addFeed();
-    addPieceBox(feedPointX, boxStartY, numBoxes, timesTable, pieceDiameter, engine.world);
-    addPieces(ballStartX, ballStartY, numBoxes, timesTable, pieceDiameter, engine.world);
-  }
-
-  drawAll()
-
-  Engine.run(engine);
 
 
-  var button = document.getElementById('drop-button')
+
+
+
+  var dropAllbutton = document.getElementById('drop-button')
+  var dropSectionbutton = document.getElementById('drop-section-button')
   var baseHeight = bottomY - (boxHeightAdjust/2)
   var channelHeight = pieceDiameter + 2
   var hasSupport = []
@@ -177,31 +171,39 @@ window.onload = function(){
   }
 
 
-  var addShoot = function(){
-    var count = 0;
-    pieces.forEach(function(piece){
-      if(piece.position.y > feedPointY){
-        count++;
-      }
-    })
+  // var addShoot = function(){
+  //   var count = 0;
+  //   pieces.forEach(function(piece){
+  //     if(piece.position.y > feedPointY){
+  //       count++;
+  //     }
+  //   })
 
-    for(var i=0 ;i<10;i++){    
-      if(!hasSupport[i] && count >= (i+1)*10){
-        World.add(engine.world, [Bodies.rectangle(centerX, heightForGuide(i+1), boxWidth, 1, { isStatic: true, angle: boxAngle })])
-        hasSupport[i] = true;
-        if(i==7){
-          Matter.Body.translate(feedGuide, {x:0, y: -1.5 * pieceDiameter})
-        }
-      }
-    }    
-  }
+  //   for(var i=0 ;i<10;i++){    
+  //     if(!hasSupport[i] && count >= (i+1)*10){
+  //       World.add(engine.world, [Bodies.rectangle(centerX, heightForGuide(i+1), boxWidth, 1, { isStatic: true, angle: boxAngle })])
+  //       hasSupport[i] = true;
+  //       if(i==7){
+  //         Matter.Body.translate(feedGuide, {x:0, y: -1.5 * pieceDiameter})
+  //       }
+  //     }
+  //   }    
+  // }
 
   var drop = function(){
     Matter.Body.translate(bottom, {x:20, y:0})
-    addShoot()
   }
 
-  button.addEventListener('click', function(ev){
+  var inDrop = false;
+
+  dropAllbutton.addEventListener('click', function(ev){
+    started = true;
+    inDrop = false;
+    //drop();
+  });
+
+
+  dropSectionbutton.addEventListener('click', function(ev){
     drop();
   });
 
@@ -210,12 +212,21 @@ window.onload = function(){
 
   var heightOffset = boxHeightAdjust/10
   var xGridSize = boxWidth/10
+
+  var started = false;
+
+  var droppedCount = 0
+  var pieceCount = 0
+
+  var shoot = 1;
+  var ballsBelowShoot = 0;
+  var pieceMoving;
+
   Events.on(engine, 'afterRender',  function(ev){
+    // draw the grid lines
     ctx.save();
-    ctx.strokeStyle =" blue";
     ctx.setLineDash([1, 2]);
     ctx.beginPath()
-
     for(var i=1; i<11; i++){
       ctx.moveTo(boxLeftX, bottomY - (channelHeight*i));
       ctx.lineTo(boxRightX, bottomY - boxHeightAdjust - (channelHeight*i));
@@ -224,10 +235,72 @@ window.onload = function(){
       ctx.moveTo(boxLeftX + xGridSize*i, bottomY - (heightOffset*i));
       ctx.lineTo(boxLeftX + xGridSize*i, bottomY - (heightOffset*i) - boxHeight -pieceDiameter);
     }
+    ctx.stroke();  
+    ctx.restore();
+    // checking if should create shoot
+    ballsBelowShoot = 0;
+    pieceInCatchCount = 0;
+    pieceMoving = false;
 
-    ctx.stroke();
-    ctx.restore(); 
+    //check what start the pieces are in to know if we need to do anything
+    pieces.forEach(function(piece){
+      if(piece.position.y > bottomY - pieceDiameter/2 - (channelHeight*shoot)){
+        ballsBelowShoot++;
+      }
+      if(piece.position.y > feedPointY){
+        pieceInCatchCount++;
+      }
+      if(piece.speed > 0.5){
+        pieceMoving = true
+      }
+    })
+
+    if(ballsBelowShoot >= shoot*10){
+      World.add(engine.world, [Bodies.rectangle(centerX, heightForGuide(shoot), boxWidth, 1, { isStatic: true, angle: boxAngle })])
+      shoot++
+    }
+
+    // checking if should drop
+    if(pieceInCatchCount == droppedCount){
+      inDrop = false;
+    }
+    if(started){
+      if(!inDrop){
+        drop()
+        inDrop = true
+        droppedCount += piecesPerBox;
+      }
+    }
+
+    if(pieceInCatchCount == piecesPerBox*numBoxes && !pieceMoving){
+      if(prediction){
+        if(prediction == piecesPerBox*numBoxes){
+          alert('correct prediction')
+        }else{
+          alert('wrong predition')
+        }
+        prediction = null
+      }
+    }
+    // drop if needed
+
   });
+
+  var drawAll = function(){
+    prediction = null;
+    shoot = 1;
+    droppedCount = 0;
+    started = false;
+    inDrop = false;
+    addGround();
+    addCatchBox();
+    addFeed();
+    addPieceBox(feedPointX, boxStartY, numBoxes, piecesPerBox, pieceDiameter, engine.world);
+    addPieces(ballStartX, ballStartY, numBoxes, piecesPerBox, pieceDiameter, engine.world);
+  }
+
+  drawAll()
+  Engine.run(engine);
 
   var findPredictionSquare = function(position){
     var xAdjust = position.x - boxLeftX
@@ -240,7 +313,7 @@ window.onload = function(){
     var ySquare = Math.ceil(yAdjust/channelHeight);
     console.log('ySquare', ySquare)
     if(!ySquare || ySquare<1 || ySquare>10){return null}
-    return{xSquare, ySquare}
+    return{x:xSquare, y:ySquare}
   }
 
   Events.on(engine, 'mousedown', function(ev){
@@ -252,11 +325,19 @@ window.onload = function(){
       var target = findPredictionSquare(position)
       if(target){
         console.log('have target', target)
+        prediction = (target.y-1) * 10 + target.x
       }
+      console.log('prediction', prediction)
     }
   })
 
+
+
+
   var inputNumBoxes = document.getElementById('num-boxes')
+
+  inputNumBoxes.setAttribute("value", numBoxes);
+
   inputNumBoxes.addEventListener('input', function(ev){
     console.log('on input changed', ev);
     var num = ev.target.valueAsNumber
@@ -267,11 +348,13 @@ window.onload = function(){
   })
 
   var inputPiecesPerBox = document.getElementById('pieces-per-box')
+
+  inputPiecesPerBox.setAttribute("value", piecesPerBox);
   inputPiecesPerBox.addEventListener('input', function(ev){
     console.log('on input changed', ev);
     var num = ev.target.valueAsNumber
     console.log('num', num)
-    timesTable = num;
+    piecesPerBox = num;
     Matter.World.clear ( engine.world )
     drawAll()
   })
