@@ -5,11 +5,11 @@ var Engine = Matter.Engine,
     Events = Matter.Events;
 
 
-window.onload = function(){
+window.startApp = function(height, width, pieceDiameter){
 	console.log('app started', Matter);
 
-  var height = 600;
-  var width = 800;
+  var height = height || 600;
+  var width = width || 600;
   var prediction = null;
 
   var engine = Engine.create(document.getElementById('main-view'),{
@@ -26,38 +26,40 @@ window.onload = function(){
   });
 
   var bottomY = height - 20
-  var centerX = width/2;
+  
   var canvas = document.getElementsByTagName("canvas")[0];
   // canvas.height = height;
   // canvas.width = width;
   // console.log('canvas', canvas)
 
-  var pieceDiameter = 19
+  var pieceDiameter = pieceDiameter || 19
   var adjust = pieceDiameter * 0.5
   var boxAngle = -Math.PI * 0.03
-  var boxHeight = 11*pieceDiameter
+  var boxHeight = 10*pieceDiameter
   var boxHypotenuse = 10*pieceDiameter - adjust
   var boxWidth = boxHypotenuse * Math.cos(boxAngle)
   var boxHeightAdjust = -1 * (boxHypotenuse * Math.sin(boxAngle))
+
+  var boxCenterX = boxWidth;
 
   console.log('boxHeightAdjust', boxHeightAdjust)
 
   var numBoxes = 3
 
-  var piecesPerBox = 8;
+  var piecesPerBox = 7;
 
   var ballBoxStartX = 500;
   var ballStartX = ballBoxStartX+ 10;
   var bottomWidth = 100
 
   var firstLineTopY = bottomY - boxHeightAdjust - pieceDiameter;
-  var boxLeftX = centerX - boxWidth/2
-  var boxRightX = centerX + boxWidth/2
+  var boxLeftX = boxCenterX - boxWidth/2
+  var boxRightX = boxCenterX + boxWidth/2
   
   var addGround = function(){
   // add ground
     World.add(engine.world, [
-      Bodies.rectangle(centerX, bottomY, width, 1, { isStatic: true, angle: 0 }),
+      Bodies.rectangle(boxCenterX, bottomY, width, 1, { isStatic: true, angle: 0 }),
     ]);
   }
 
@@ -65,7 +67,7 @@ window.onload = function(){
   //add catch box
     World.add(engine.world, [
       //bottom
-      Bodies.rectangle(centerX, bottomY - boxHeightAdjust/2, boxWidth+pieceDiameter/2, 1, { isStatic: true, angle: boxAngle }),
+      Bodies.rectangle(boxCenterX, bottomY - boxHeightAdjust/2, boxWidth+pieceDiameter/2, 1, { isStatic: true, angle: boxAngle }),
       //walls
       Bodies.rectangle(boxLeftX, bottomY - boxHeight/2, boxHeight, 1, { isStatic: true, angle: Math.PI * 0.5 }),
       Bodies.rectangle(boxRightX, bottomY - boxHeightAdjust - (boxHeight/2), boxHeight, 1, { isStatic: true, angle: Math.PI * 0.5 }),
@@ -74,9 +76,9 @@ window.onload = function(){
 
   //feed variables
   var feedAngle = -Math.PI * 0.04
-  var feedPointX = centerX + boxWidth/2;
+  var feedPointX = boxCenterX + boxWidth/2;
   var feedPointY = bottomY - boxHeight - boxHeightAdjust - pieceDiameter
-  var feedTotalWidth = width - feedPointX
+  var feedTotalWidth = pieceDiameter * 15
   var feedLength = feedTotalWidth / Math.cos(feedAngle)
   var feedHeight = (feedTotalWidth * Math.tan(feedAngle)) * -1
   var feedCenterX = feedPointX + feedTotalWidth/2
@@ -127,20 +129,20 @@ window.onload = function(){
     var colours = {
       0:"#991111",
       1:"#945671",
-      2:"#001111",
+      2:"#ee1111",
       3:"#991199",
-      4:"#991111",
-      5:"#661111",
-      6:"#99ee11",
-      7:"#9911aa",
-      8:"#995511",
+      4:"#116621",
+      5:"#bbbb11",
+      6:"#33ee99",
+      7:"#556677",
+      8:"#3355f1",
       9:"#221111",
     } 
     var ballFriction = 0.00001;
     var ballRestitution = 0.0000001;
     var ballDensity = 0.0000001;
     var ballSlop = 0.000000001;
-    var ballFrictionAir = 0.01;
+    var ballFrictionAir = 0.03;
 
     pieces = []
     for(var i=0; i<numBoxes; i++){
@@ -155,10 +157,6 @@ window.onload = function(){
 
   var ballStartX = feedPointX + pieceDiameter/2
   var ballStartY = boxStartY - pieceDiameter/2
-
-
-
-
 
 
   var dropAllbutton = document.getElementById('drop-button')
@@ -191,7 +189,7 @@ window.onload = function(){
   // }
 
   var drop = function(){
-    Matter.Body.translate(bottom, {x:20, y:0})
+    Matter.Body.translate(bottom, {x:pieceDiameter, y:0})
   }
 
   var inDrop = false;
@@ -227,6 +225,7 @@ window.onload = function(){
     ctx.save();
     ctx.setLineDash([1, 2]);
     ctx.beginPath()
+    ctx.strokeStyle = "rgba(88,88,88,0.5)";
     for(var i=1; i<11; i++){
       ctx.moveTo(boxLeftX, bottomY - (channelHeight*i));
       ctx.lineTo(boxRightX, bottomY - boxHeightAdjust - (channelHeight*i));
@@ -235,8 +234,37 @@ window.onload = function(){
       ctx.moveTo(boxLeftX + xGridSize*i, bottomY - (heightOffset*i));
       ctx.lineTo(boxLeftX + xGridSize*i, bottomY - (heightOffset*i) - boxHeight -pieceDiameter);
     }
-    ctx.stroke();  
+
+    ctx.stroke();
+
+
+    if(prediction){
+      console.log('have prediction', prediction)
+      ctx.beginPath()
+      //full boxes
+      ctx.moveTo(boxLeftX, bottomY);
+      ctx.lineTo(boxRightX, bottomY - boxHeightAdjust )
+      ctx.lineTo(boxRightX, bottomY - boxHeightAdjust - (channelHeight * (prediction.y-1)))
+      ctx.lineTo(boxLeftX, bottomY - (channelHeight* (prediction.y-1)));
+      //partial box
+      ctx.lineTo(boxLeftX + (xGridSize *prediction.x)  ,  bottomY - (channelHeight* (prediction.y-1)) - heightOffset*prediction.x )
+      ctx.lineTo(boxLeftX + (xGridSize *prediction.x)  ,  bottomY - (channelHeight* (prediction.y-1)) - heightOffset*prediction.x - channelHeight )
+      ctx.lineTo(boxLeftX, bottomY - (channelHeight* (prediction.y)));
+      
+
+      ctx.lineTo(boxLeftX, bottomY - (channelHeight));
+      ctx.fillStyle = "rgba(20, 200, 244, 0.2)";
+      ctx.fill()
+      //draw path for 
+    }else{
+      ctx.font = "14px sans-serif";
+      ctx.fillStyle = "rgba(88, 88, 88, 1)";
+      ctx.fillText("Click on box to make prediction", boxRightX + 1*pieceDiameter, bottomY - pieceDiameter*5);
+    }  
     ctx.restore();
+
+
+
     // checking if should create shoot
     ballsBelowShoot = 0;
     pieceInCatchCount = 0;
@@ -256,7 +284,7 @@ window.onload = function(){
     })
 
     if(ballsBelowShoot >= shoot*10){
-      World.add(engine.world, [Bodies.rectangle(centerX, heightForGuide(shoot), boxWidth, 1, { isStatic: true, angle: boxAngle })])
+      World.add(engine.world, [Bodies.rectangle(boxCenterX, heightForGuide(shoot), boxWidth, 1, { isStatic: true, angle: boxAngle })])
       shoot++
     }
 
@@ -274,7 +302,7 @@ window.onload = function(){
 
     if(pieceInCatchCount == piecesPerBox*numBoxes && !pieceMoving){
       if(prediction){
-        if(prediction == piecesPerBox*numBoxes){
+        if((prediction.y-1) * 10 + prediction.x ==  piecesPerBox*numBoxes){
           alert('correct prediction')
         }else{
           alert('wrong predition')
@@ -322,11 +350,12 @@ window.onload = function(){
     console.log('position', position)
     if(position.x <= boxRightX && position.x >= boxLeftX && position.y > feedPointY ){
       console.log('trying to find target')
-      var target = findPredictionSquare(position)
-      if(target){
-        console.log('have target', target)
-        prediction = (target.y-1) * 10 + target.x
-      }
+      prediction = findPredictionSquare(position)
+      // if(target){
+      //   console.log('have target', target)
+      //   prediction
+      //   prediction = (target.y-1) * 10 + target.x
+      // }
       console.log('prediction', prediction)
     }
   })
