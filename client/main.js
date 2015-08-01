@@ -371,9 +371,25 @@ window.startApp = function(height, width, pieceDiameter){
     if(feed){
       if(horizontal){
         console.log('horizontal feed')
+        if(xMove < 0){
+          if(numBoxes > 8){return}
+          numBoxes++
+        }else{
+          if(numBoxes <= 1){return}
+          numBoxes--
+        }
       }else{
         console.log('vertical feed')
+        if(yMove > 0){
+          if(piecesPerBox > 8){return}
+          piecesPerBox++
+        }else{
+          if(piecesPerBox <= 1){return}
+          piecesPerBox--
+        }
       }
+      Matter.World.clear ( engine.world )
+      drawAll();
     }
     else{
       if(!prediction){prediction = 1}
