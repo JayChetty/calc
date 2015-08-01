@@ -96,7 +96,7 @@ window.startApp = function(height, width, pieceDiameter){
       Bodies.rectangle(feedPointX + feedTotalWidth, feedPointY - feedHeight - blockSize/2 , blockSize, 5, { isStatic: true, angle: Math.PI * 0.5 }),
       //guide
       feedGuide,
-      Bodies.rectangle(feedPointX, feedPointY + pieceDiameter, pieceDiameter * 2, 1, { isStatic: true, angle: -Math.PI * 0.5 })
+      Bodies.rectangle(feedPointX, feedPointY + pieceDiameter + 2, pieceDiameter * 2, 1, { isStatic: true, angle: -Math.PI * 0.5 })
     ]);
   }
 
@@ -104,6 +104,7 @@ window.startApp = function(height, width, pieceDiameter){
   var boxStartY = feedPointY - feedHeight*2  - holeSize*0.8  - gap  
   var bottomWidth = numBoxes*pieceDiameter 
   var bottom;//global so other drop can access
+  var boxColWidth = pieceDiameter
 
 
   var addPieceBox = function(startX, startY, numBoxes, piecesPerBox, pieceDiameter, world){ 
@@ -113,7 +114,7 @@ window.startApp = function(height, width, pieceDiameter){
     bottom = Bodies.rectangle(startX+ bottomWidth/2, boxStartY, bottomWidth, 1, { isStatic: true, angle: 0 });
     //add box columns
     for(var i=0; i<numBoxes+1; i++){// we need 11 lines to create 10 boxes
-      ballBoxBodies.push( Bodies.rectangle(startX + (i*pieceDiameter), boxStartY - boxHeight/2, boxHeight, 1, { isStatic: true, angle: Math.PI * 0.5 }) )   
+      ballBoxBodies.push( Bodies.rectangle(startX + (i*boxColWidth), boxStartY - boxHeight/2, boxHeight, 1, { isStatic: true, angle: Math.PI * 0.5 }) )   
     }
     World.add(engine.world, ballBoxBodies)
     //add protector
@@ -147,7 +148,7 @@ window.startApp = function(height, width, pieceDiameter){
     pieces = []
     for(var i=0; i<numBoxes; i++){
       for(var j=0; j<piecesPerBox; j++){
-        pieces.push( Bodies.circle(ballStartX + i*pieceDiameter, ballStartY - j*pieceDiameter, pieceDiameter/2, { friction: ballFriction, restitution: ballRestitution, 
+        pieces.push( Bodies.circle(ballStartX + i*boxColWidth, ballStartY - j*pieceDiameter, pieceDiameter/2, { friction: ballFriction, restitution: ballRestitution, 
           frictionAir: ballFrictionAir, density: ballDensity, slop:ballSlop, render: { fillStyle: colours[i] } }) )
       }
     }
@@ -189,7 +190,7 @@ window.startApp = function(height, width, pieceDiameter){
   // }
 
   var drop = function(){
-    Matter.Body.translate(bottom, {x:pieceDiameter, y:0})
+    Matter.Body.translate(bottom, {x:boxColWidth, y:0})
   }
 
   var inDrop = false;
@@ -283,13 +284,13 @@ window.startApp = function(height, width, pieceDiameter){
       }
     })
 
-    if(ballsBelowShoot >= shoot*10){
+    if(ballsBelowShoot >= shoot*10 && !pieceMoving){
       World.add(engine.world, [Bodies.rectangle(boxCenterX, heightForGuide(shoot), boxWidth, 1, { isStatic: true, angle: boxAngle })])
       shoot++
     }
 
     // checking if should drop
-    if(pieceInCatchCount == droppedCount){
+    if(pieceInCatchCount == droppedCount && !pieceMoving){
       inDrop = false;
     }
     if(started){
