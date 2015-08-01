@@ -242,15 +242,20 @@ window.startApp = function(height, width, pieceDiameter){
     if(prediction){
       console.log('have prediction', prediction)
       ctx.beginPath()
+      predictionY= Math.ceil(prediction/10)
+      predictionX = prediction%10 
+      if(predictionX == 0){
+        predictionY = predictionY + 1
+      }
       //full boxes
       ctx.moveTo(boxLeftX, bottomY);
       ctx.lineTo(boxRightX, bottomY - boxHeightAdjust )
-      ctx.lineTo(boxRightX, bottomY - boxHeightAdjust - (channelHeight * (prediction.y-1)))
-      ctx.lineTo(boxLeftX, bottomY - (channelHeight* (prediction.y-1)));
+      ctx.lineTo(boxRightX, bottomY - boxHeightAdjust - (channelHeight * (predictionY-1)))
+      ctx.lineTo(boxLeftX, bottomY - (channelHeight* (predictionY-1)));
       //partial box
-      ctx.lineTo(boxLeftX + (xGridSize *prediction.x)  ,  bottomY - (channelHeight* (prediction.y-1)) - heightOffset*prediction.x )
-      ctx.lineTo(boxLeftX + (xGridSize *prediction.x)  ,  bottomY - (channelHeight* (prediction.y-1)) - heightOffset*prediction.x - channelHeight )
-      ctx.lineTo(boxLeftX, bottomY - (channelHeight* (prediction.y)));
+      ctx.lineTo(boxLeftX + (xGridSize *predictionX)  ,  bottomY - (channelHeight* (predictionY-1)) - heightOffset*predictionX )
+      ctx.lineTo(boxLeftX + (xGridSize *predictionX)  ,  bottomY - (channelHeight* (predictionY-1)) - heightOffset*predictionX - channelHeight )
+      ctx.lineTo(boxLeftX, bottomY - (channelHeight* (predictionY)));
       
 
       ctx.lineTo(boxLeftX, bottomY - (channelHeight));
@@ -303,7 +308,7 @@ window.startApp = function(height, width, pieceDiameter){
 
     if(pieceInCatchCount == piecesPerBox*numBoxes && !pieceMoving){
       if(prediction){
-        if((prediction.y-1) * 10 + prediction.x ==  piecesPerBox*numBoxes){
+        if(prediction ==  piecesPerBox*numBoxes){
           alert('correct prediction')
         }else{
           alert('wrong predition')
@@ -345,21 +350,66 @@ window.startApp = function(height, width, pieceDiameter){
     return{x:xSquare, y:ySquare}
   }
 
-  Events.on(engine, 'mousedown', function(ev){
-    console.log('mousedown',ev);
-    var position = ev.mouse.mousedownPosition
-    console.log('position', position)
-    if(position.x <= boxRightX && position.x >= boxLeftX && position.y > feedPointY ){
-      console.log('trying to find target')
-      prediction = findPredictionSquare(position)
-      // if(target){
-      //   console.log('have target', target)
-      //   prediction
-      //   prediction = (target.y-1) * 10 + target.x
-      // }
-      console.log('prediction', prediction)
+
+  Events.on(engine, 'mouseup', function(ev){
+    var downPosition = ev.mouse.mousedownPosition
+    var upPosition = ev.mouse.mouseupPosition
+    console.log('mouseup', ev)
+    if(!downPosition){return}
+    var feed = false
+    if(downPosition.y > feedPointY){
+      //started in main box
+      feed = false
+    }else{
+      //consider as feed box
+      feed = true
     }
-  })
+
+    xMove = downPosition.x - upPosition.x;
+    yMove = downPosition.y - upPosition.y;
+    var horizontal = Math.abs(xMove) > Math.abs(yMove)
+    if(feed){
+      if(horizontal){
+        console.log('horizontal feed')
+      }else{
+        console.log('vertical feed')
+      }
+    }
+    else{
+      if(!prediction){prediction = 1}
+      if(horizontal){
+        console.log('horizontal main')
+        if(xMove < 0){
+          if(prediction > 89){return}
+          prediction++
+        }else{
+          if(prediction <= 1){return}
+          prediction--
+        }
+
+      }else{
+        console.log('vertical main')
+        if(yMove > 0){
+          if(prediction > 90){return}
+          prediction = prediction + 10
+        }else{
+          if(prediction <= 10){return}
+          prediction = prediction -10
+        }
+      }
+    }
+  });
+
+  // Events.on(engine, 'mousedown', function(ev){
+  //   console.log('mousedown' ,ev);
+  //   var position = ev.mouse.mousedownPosition
+  //   console.log('position', position)
+  //   if(position.x <= boxRightX && position.x >= boxLeftX && position.y > feedPointY ){  
+  //     console.log('trying to find target')
+  //     prediction = findPredictionSquare(position)
+  //     console.log('prediction', prediction)
+  //   }
+  // });
 
 
 
